@@ -14,6 +14,8 @@
       align-items: center;
       height: 100vh;
       color: #EAEAEA;
+      margin: 0;
+      position: relative;
     }
 
     body::before {
@@ -50,13 +52,31 @@
     input[type="text"],
     input[type="email"],
     input[type="password"],
-    input[type="file"] {
+    input[type="file"],
+    select {
       width: 100%;
       padding: 12px;
       margin-bottom: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
       box-sizing: border-box;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-wrapper input {
+      padding-right: 40px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #000;
     }
 
     button {
@@ -92,18 +112,30 @@
 
   <div class="form-container">
     <h2>Sign Up</h2>
-    <form method="POST" enctype="multipart/form-data">
+    <form id="signupForm" method="POST" enctype="multipart/form-data">
       <label for="username">Username</label>
-      <input type="text" name="username" required>
+      <input type="text" name="username" placeholder="e.g., johndoe123" required>
 
       <label for="email">Email</label>
-      <input type="email" name="email" required>
+      <input type="email" name="email" placeholder="e.g., john@example.com" required>
 
       <label for="password">Password</label>
-      <input type="password" name="password" required>
+      <div class="password-wrapper">
+        <input type="password" name="password" id="password" placeholder="Min 8 chars: Aa1@example" required>
+        <i class="fas fa-eye toggle-password" onclick="togglePassword()"></i>
+      </div>
+
+      <label for="gender">Gender (optional)</label>
+      <select name="gender">
+        <option value="">--Select Gender--</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+      </select>
 
       <label for="profile_pic">Profile Picture</label>
-      <input type="file" name="profile_pic" accept="image/*">
+      <input type="file" name="profile_pic" accept="image/png, image/jpeg" required>
 
       <div class="error" id="errorMsg"></div>
       <button type="submit">Register</button>
@@ -113,6 +145,61 @@
       Already have an account? Sign In
     </button>
   </div>
+
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById("password");
+      const icon = document.querySelector(".toggle-password");
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+      } else {
+        passwordInput.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+      }
+    }
+
+    document.getElementById("signupForm").addEventListener("submit", function (e) {
+      const password = document.getElementById("password").value;
+      const profilePicInput = document.querySelector('input[name="profile_pic"]');
+      const profilePic = profilePicInput.files[0];
+      const errorMsg = document.getElementById("errorMsg");
+
+      const passwordRegex = /^(?=.[A-Z])(?=.[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+
+      if (!passwordRegex.test(password)) {
+        e.preventDefault();
+        errorMsg.textContent = "Password must be at least 8 characters, include 1 uppercase letter, and 1 special character.";
+        return;
+      }
+
+      if (!profilePic) {
+        e.preventDefault();
+        errorMsg.textContent = "Please upload a profile picture.";
+        return;
+      }
+
+      const allowedTypes = ['image/jpeg', 'image/png'];
+
+      if (!allowedTypes.includes(profilePic.type)) {
+        e.preventDefault();
+        errorMsg.textContent = "Profile picture must be a PNG or JPG image.";
+        profilePicInput.value = '';  // Clear invalid file
+        return;
+      }
+
+      if (profilePic.size > 50 * 1024) {  // 50 KB size limit
+        e.preventDefault();
+        errorMsg.textContent = "Profile picture must be smaller than 50KB.";
+        profilePicInput.value = '';  // Clear large file
+        return;
+      }
+
+      errorMsg.textContent = "";  // Clear any previous error
+    });
+  </script>
 
 </body>
 </html>
